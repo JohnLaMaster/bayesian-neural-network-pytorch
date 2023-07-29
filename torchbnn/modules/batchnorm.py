@@ -161,3 +161,22 @@ class BayesBatchNorm2d(_BayesBatchNorm):
         if input.dim() != 4:
             raise ValueError('expected 4D input (got {}D input)'
                              .format(input.dim()))
+
+
+class BayesBatchNorm1d(_BayesBatchNorm):
+    r"""
+    Applies Bayesian Batch Normalization over a 1D input 
+
+    Arguments:
+        prior_mu (Float): mean of prior normal distribution.
+        prior_sigma (Float): sigma of prior normal distribution.
+
+    .. note:: other arguments are following batchnorm of pytorch 1.2.0.
+    https://github.com/pytorch/pytorch/blob/master/torch/nn/modules/batchnorm.py
+
+    """
+
+    def _check_input_dim(self, input):
+        if input.dim() != 3:
+            raise ValueError('expected 3D input (got {}D input)'
+                             .format(input.dim()))
