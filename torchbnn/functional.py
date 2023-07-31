@@ -38,7 +38,7 @@ def bayesian_kl_loss(model, reduction='mean', last_layer_only=False) :
     n = torch.Tensor([0]).to(device)
 
     for m in model.modules() :
-        if isinstance(m, (BayesLinear, BayesConv2d)):
+        if isinstance(m, (BayesLinear, BayesConv1d, BayesConv2d, BayesSine)):
             kl = _kl_loss(m.weight_mu, m.weight_log_sigma, m.prior_mu, m.prior_log_sigma)
             kl_sum += kl
             n += len(m.weight_mu.view(-1))
@@ -48,7 +48,7 @@ def bayesian_kl_loss(model, reduction='mean', last_layer_only=False) :
                 kl_sum += kl
                 n += len(m.bias_mu.view(-1))
 
-        if isinstance(m, BayesBatchNorm2d):
+        if isinstance(m, BayesBatchNorm1d, BayesBatchNorm2d):
             if m.affine :
                 kl = _kl_loss(m.weight_mu, m.weight_log_sigma, m.prior_mu, m.prior_log_sigma)
                 kl_sum += kl
@@ -57,6 +57,14 @@ def bayesian_kl_loss(model, reduction='mean', last_layer_only=False) :
                 kl = _kl_loss(m.bias_mu, m.bias_log_sigma, m.prior_mu, m.prior_log_sigma)
                 kl_sum += kl                
                 n += len(m.bias_mu.view(-1))
+
+        if isinstance(m, BayesSinLU):
+            kl  = _kl_loss(m.a_mu, m.a_log_sigma, m.prior_mu, m.prior_log_sigma)
+            kl += _kl_loss(m.b_mu, m.b_log_sigma, m.prior_mu, m.prior_log_sigma)
+            kl_sum += kl
+            n += len(m.a_mu.view(-1)) + len(m.b_mu.view(-1))
+
+
             
     if last_layer_only or n == 0 :
         return kl
